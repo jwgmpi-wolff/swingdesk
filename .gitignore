@@ -1,4 +1,5 @@
 .env
+.vscode/
 cdp_api_key*.json
 .venv/
 __pycache__/
