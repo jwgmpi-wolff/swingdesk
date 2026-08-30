@@ -1,0 +1,54 @@
+name: Deploy Swingdesk to Azure
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: swingdesk-production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q
+      - uses: azure/cli@v2
+        with:
+          inlineScript: az bicep build --file infra/main.bicep --stdout > /dev/null
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: ${{ vars.AZURE_ENVIRONMENT }}
+    env:
+      DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
+      DASHBOARD_SESSION_SECRET: ${{ secrets.DASHBOARD_SESSION_SECRET }}
+      COINBASE_API_KEY: ${{ secrets.COINBASE_API_KEY }}
+      COINBASE_API_SECRET: ${{ secrets.COINBASE_API_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sign in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Build and deploy
+        shell: pwsh
+        run: >-
+          ./scripts/Deploy-Azure.ps1
+          -Subscription '${{ vars.AZURE_SUBSCRIPTION_ID }}'
+          -ResourceGroup '${{ vars.AZURE_RESOURCE_GROUP }}'
+          -Location '${{ vars.AZURE_LOCATION }}'
+          -ImageTag '${{ github.sha }}'
+          -Force

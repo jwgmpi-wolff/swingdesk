@@ -1,0 +1,15 @@
+.git
+.github
+.venv
+.vscode
+__pycache__
+.pytest_cache
+*.pyc
+android
+dist
+logs
+.env
+bot_settings.json
+dashboard_password.json
+dashboard_service_secret.txt
+trade_state.json

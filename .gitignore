@@ -11,6 +11,8 @@ bot_settings.json
 bot_settings.json.tmp
 dashboard_password.json
 dashboard_password.json.tmp
+dashboard_service_secret.txt
+logs/
 android/.gradle/
 android/local.properties
 android/**/build/

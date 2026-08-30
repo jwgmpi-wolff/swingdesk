@@ -7,6 +7,7 @@ import json
 import os
 import secrets
 import threading
+import time
 from datetime import datetime, timezone
 from decimal import Decimal
 from functools import wraps
@@ -34,6 +35,10 @@ from swing_trader import (
 
 Route = TypeVar("Route", bound=Callable[..., Any])
 RUN_LOCK = threading.Lock()
+LOGIN_LOCK = threading.Lock()
+LOGIN_ATTEMPTS: dict[str, list[float]] = {}
+LOGIN_WINDOW_SECONDS = 15 * 60
+LOGIN_ATTEMPT_LIMIT = 5
 PASSWORD_PATH = Path(os.getenv("DASHBOARD_PASSWORD_PATH", "dashboard_password.json"))
 
 
@@ -81,6 +86,24 @@ def save_password(path: Path, password: str) -> str:
     temporary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
     return revision
+
+
+def login_throttled(client: str) -> bool:
+    cutoff = time.monotonic() - LOGIN_WINDOW_SECONDS
+    with LOGIN_LOCK:
+        attempts = [value for value in LOGIN_ATTEMPTS.get(client, []) if value >= cutoff]
+        LOGIN_ATTEMPTS[client] = attempts
+        return len(attempts) >= LOGIN_ATTEMPT_LIMIT
+
+
+def record_login_failure(client: str) -> None:
+    with LOGIN_LOCK:
+        LOGIN_ATTEMPTS.setdefault(client, []).append(time.monotonic())
+
+
+def clear_login_failures(client: str) -> None:
+    with LOGIN_LOCK:
+        LOGIN_ATTEMPTS.pop(client, None)
 
 
 def require_login(route: Route) -> Route:
@@ -226,6 +249,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         SECRET_KEY=os.getenv("DASHBOARD_SESSION_SECRET", secrets.token_hex(32)),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Strict",
+        SESSION_COOKIE_SECURE=os.getenv("DASHBOARD_HTTPS_ONLY", "false").lower() in {"true", "1", "yes"},
         MAX_CONTENT_LENGTH=16 * 1024,
         SETTINGS_PATH=SETTINGS_PATH,
         STATE_PATH=STATE_PATH,
@@ -250,19 +274,28 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     def index() -> str:
         return render_template("index.html")
 
+    @app.get("/healthz")
+    def health() -> Any:
+        return jsonify({"status": "ok"})
+
     @app.get("/service-worker.js")
     def service_worker() -> Response:
         return send_from_directory(app.static_folder or "static", "service-worker.js", mimetype="application/javascript")
 
     @app.post("/api/login")
     def login() -> Any:
+        client = request.remote_addr or "unknown"
+        if login_throttled(client):
+            return jsonify({"error": "Too many failed login attempts; try again later"}), 429
         supplied = str((request.get_json(silent=True) or {}).get("password", ""))
         password_path = Path(app.config["PASSWORD_PATH"])
         if not password_path.exists() and not os.getenv("DASHBOARD_PASSWORD"):
             return jsonify({"error": "DASHBOARD_PASSWORD is not configured"}), 503
         verified, revision = verify_password(password_path, supplied)
         if not verified:
+            record_login_failure(client)
             return jsonify({"error": "Invalid password"}), 401
+        clear_login_failures(client)
         session.clear()
         session["authenticated"] = True
         session["password_revision"] = revision

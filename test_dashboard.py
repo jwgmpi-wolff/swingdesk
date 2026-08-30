@@ -34,6 +34,20 @@ def test_app_shell_and_red_c_icon_are_served(tmp_path: Path, monkeypatch) -> Non
     assert b">C</text>" in icon.data
     assert b"#d52b2b" in icon.data
     assert b"icon-192.png" in client.get("/static/manifest.webmanifest").data
+    assert client.get("/healthz").get_json() == {"status": "ok"}
+
+
+def test_failed_logins_are_throttled(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("DASHBOARD_PASSWORD", "test-password")
+    dashboard.LOGIN_ATTEMPTS.clear()
+    app = dashboard.create_app({"TESTING": True, "PASSWORD_PATH": tmp_path / "password.json"})
+    client = app.test_client()
+
+    for _ in range(dashboard.LOGIN_ATTEMPT_LIMIT):
+        assert client.post("/api/login", json={"password": "wrong"}).status_code == 401
+
+    assert client.post("/api/login", json={"password": "test-password"}).status_code == 429
+    dashboard.LOGIN_ATTEMPTS.clear()
 
 
 def test_settings_update_requires_csrf(tmp_path: Path, monkeypatch) -> None:
