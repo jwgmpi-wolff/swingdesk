@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14211d">
+  <meta name="description" content="Private swing trading operations dashboard">
+  <title>Swingdesk</title>
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="icon" href="/static/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <section class="login-shell" id="login-shell">
+    <div class="login-mark" aria-hidden="true">C</div>
+    <form class="login-panel" id="login-form">
+      <p class="eyebrow">PRIVATE TERMINAL</p>
+      <h1>Swingdesk</h1>
+      <p class="login-copy">Your strategy, account activity, and execution controls.</p>
+      <label for="password">Dashboard password</label>
+      <div class="password-row">
+        <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+        <button class="eye-button" id="password-toggle" type="button" title="Show password" aria-label="Show password" aria-pressed="false"><span aria-hidden="true"></span></button>
+        <button class="unlock-button" id="unlock-button" type="submit">Unlock</button>
+      </div>
+      <p class="form-error" id="login-error" role="alert"></p>
+    </form>
+  </section>
+
+  <div class="app-shell" id="app-shell" hidden>
+    <header class="topbar">
+      <a class="brand" href="#overview" data-tab="overview" aria-label="Swingdesk overview">
+        <span class="brand-mark" aria-hidden="true">C</span><strong>Swingdesk</strong>
+      </a>
+      <nav class="desktop-nav" aria-label="Primary">
+        <button class="nav-item active" data-tab="overview">Overview</button>
+        <button class="nav-item" data-tab="activity">Activity</button>
+        <button class="nav-item" data-tab="transactions">Transactions</button>
+        <button class="nav-item" data-tab="settings">Settings</button>
+      </nav>
+      <div class="top-actions">
+        <span class="connection"><i></i><span>Connected</span></span>
+        <button class="icon-button" id="refresh-button" title="Refresh data" aria-label="Refresh data">&#8635;</button>
+        <button class="quiet-button" id="logout-button">Lock</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="alert" id="alert" role="status" hidden></div>
+      <section class="view active" id="view-overview">
+        <div class="page-heading">
+          <div><p class="eyebrow">ACCOUNT CONTROL</p><h1>Overview</h1></div>
+          <div class="heading-actions"><span class="updated" id="updated-at">Not refreshed</span><button class="primary-button" id="run-button">Run strategy now</button></div>
+        </div>
+        <div class="metric-grid">
+          <article class="metric"><span>Tracked asset</span><strong id="metric-ticker">--</strong><small id="metric-position">Position unknown</small></article>
+          <article class="metric"><span>Latest close</span><strong id="metric-close">--</strong><small id="metric-entry">No entry recorded</small></article>
+          <article class="metric"><span>Current signal</span><strong id="metric-signal">--</strong><small>20 / 50 SMA crossover</small></article>
+          <article class="metric accent"><span>Execution mode</span><strong id="metric-mode">--</strong><small id="metric-notional">-- per entry</small></article>
+        </div>
+        <div class="overview-grid">
+          <section class="panel chart-panel">
+            <div class="panel-heading"><div><h2>Price movement</h2><p id="chart-subtitle">90 completed sessions</p></div><div class="chart-tools"><label for="strategy-select">Stock</label><select id="strategy-select" aria-label="Select tracked stock"></select><div class="legend"><span class="close">Close</span><span class="fast">SMA 20</span><span class="slow">SMA 50</span></div></div></div>
+            <div class="chart-wrap"><canvas id="strategy-chart" aria-label="Price and moving average chart"></canvas></div>
+          </section>
+          <section class="panel balances-panel">
+            <div class="panel-heading"><div><h2>Balances</h2><p>Available and on hold</p></div></div>
+            <div class="balance-list" id="balance-list"><div class="skeleton tall"></div></div>
+          </section>
+        </div>
+        <section class="panel recent-panel">
+          <div class="panel-heading"><div><h2>Recent activity</h2><p>Latest equity orders</p></div><button class="text-button" data-tab="activity">View all</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Asset</th><th>Side</th><th>Status</th><th>Filled</th><th>Average price</th><th>Created</th></tr></thead><tbody id="recent-orders"></tbody></table></div>
+        </section>
+      </section>
+
+      <section class="view" id="view-activity">
+        <div class="page-heading"><div><p class="eyebrow">ORDER LEDGER</p><h1>Activity</h1></div><label class="search"><span aria-hidden="true">&#9906;</span><input id="order-search" type="search" placeholder="Filter orders" aria-label="Filter orders"></label></div>
+        <section class="panel table-panel"><div class="table-wrap"><table><thead><tr><th>Created</th><th>Asset</th><th>Side</th><th>Type</th><th>Status</th><th>Filled size</th><th>Filled value</th><th>Fees</th></tr></thead><tbody id="orders-table"></tbody></table></div></section>
+      </section>
+
+      <section class="view" id="view-transactions">
+        <div class="page-heading"><div><p class="eyebrow">EXECUTION LEDGER</p><h1>Transactions</h1></div><label class="search"><span aria-hidden="true">&#9906;</span><input id="fill-search" type="search" placeholder="Filter fills" aria-label="Filter fills"></label></div>
+        <section class="panel table-panel"><div class="table-wrap"><table><thead><tr><th>Trade time</th><th>Asset</th><th>Side</th><th>Price</th><th>Size</th><th>Commission</th><th>Liquidity</th></tr></thead><tbody id="fills-table"></tbody></table></div></section>
+      </section>
+
+      <section class="view" id="view-settings">
+        <div class="page-heading"><div><p class="eyebrow">STRATEGY CONTROL</p><h1>Settings</h1></div></div>
+        <form class="settings-layout" id="settings-form">
+          <section class="panel settings-panel">
+            <div class="panel-heading"><div><h2>Trading parameters</h2><p>Applied to dashboard and scheduled runs</p></div></div>
+            <div class="strategy-list" id="strategy-list"></div>
+            <button class="text-button add-strategy" id="add-strategy" type="button">+ Add stock strategy</button>
+          </section>
+          <section class="panel safety-panel">
+            <div><p class="eyebrow">EXECUTION SAFETY</p><h2>Live trading</h2><p>Dry run is the default. Live mode permits the strategy to submit orders using your Coinbase key.</p></div>
+            <label class="switch-row"><span><strong>Enable live orders</strong><small>Every manual run still asks for confirmation</small></span><input name="live_trading" type="checkbox"><i aria-hidden="true"></i></label>
+            <div class="live-warning" id="live-warning" hidden><strong>Live capital at risk</strong><span>Saving will allow scheduled runs to place eligible orders.</span></div>
+            <button class="primary-button full" type="submit">Save settings</button>
+          </section>
+        </form>
+        <div class="account-settings-grid">
+          <section class="panel account-panel">
+            <div class="panel-heading"><div><h2>Funding</h2><p>Transfers are completed securely in Coinbase</p></div></div>
+            <div class="account-panel-body">
+              <p id="funding-status">Checking Coinbase funding access...</p>
+              <div class="funding-actions"><a class="primary-button link-button" id="deposit-link" href="https://www.coinbase.com/home" target="_blank" rel="noopener noreferrer">Add cash in Coinbase</a><a class="quiet-action" id="withdraw-link" href="https://www.coinbase.com/home" target="_blank" rel="noopener noreferrer">Cash out in Coinbase</a></div>
+              <small>Swingdesk never receives bank account or routing information.</small>
+            </div>
+          </section>
+          <form class="panel account-panel" id="password-form">
+            <div class="panel-heading"><div><h2>Dashboard password</h2><p>Changing it signs out every open session</p></div></div>
+            <div class="account-panel-body password-fields">
+              <label><span>Current password</span><input name="current_password" type="password" autocomplete="current-password" required></label>
+              <label><span>New password</span><input name="new_password" type="password" autocomplete="new-password" minlength="10" required></label>
+              <label><span>Confirm new password</span><input name="confirm_password" type="password" autocomplete="new-password" minlength="10" required></label>
+              <label class="show-passwords"><input id="show-passwords" type="checkbox"> Show passwords</label>
+              <button class="primary-button" type="submit">Change password</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+    <nav class="mobile-nav" aria-label="Primary">
+      <button class="active" data-tab="overview"><span>&#9632;</span>Overview</button><button data-tab="activity"><span>&#8645;</span>Activity</button><button data-tab="transactions"><span>&#8801;</span>Fills</button><button data-tab="settings"><span>&#9881;</span>Settings</button>
+    </nav>
+  </div>
+
+  <dialog id="confirm-dialog">
+    <form method="dialog"><p class="eyebrow">CONFIRM EXECUTION</p><h2 id="confirm-title">Run strategy now?</h2><p id="confirm-copy">The latest completed candle will be evaluated.</p><div class="dialog-actions"><button value="cancel" class="quiet-button">Cancel</button><button value="confirm" class="primary-button" id="confirm-run">Run now</button></div></form>
+  </dialog>
+</body>
+</html>
