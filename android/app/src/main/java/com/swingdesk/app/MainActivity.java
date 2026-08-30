@@ -28,6 +28,7 @@ import java.net.URISyntaxException;
 public final class MainActivity extends Activity {
     private static final String PREFERENCES = "swingdesk";
     private static final String SERVER_URL = "server_url";
+    private static final String LEGACY_LOOPBACK_URL = "http://127.0.0.1:8787/";
     private WebView webView;
 
     @Override
@@ -106,7 +107,12 @@ public final class MainActivity extends Activity {
     }
 
     private String serverUrl() {
-        return getSharedPreferences(PREFERENCES, MODE_PRIVATE).getString(SERVER_URL, BuildConfig.DEFAULT_SERVER_URL);
+        String saved = getSharedPreferences(PREFERENCES, MODE_PRIVATE).getString(SERVER_URL, BuildConfig.DEFAULT_SERVER_URL);
+        if (LEGACY_LOOPBACK_URL.equals(saved)) {
+            getSharedPreferences(PREFERENCES, MODE_PRIVATE).edit().putString(SERVER_URL, BuildConfig.DEFAULT_SERVER_URL).apply();
+            return BuildConfig.DEFAULT_SERVER_URL;
+        }
+        return saved;
     }
 
     private void showServerDialog() {

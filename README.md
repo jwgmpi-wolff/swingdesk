@@ -77,7 +77,7 @@ The native Android shell is in `android/` and keeps trading logic and credential
 .\build_android.ps1 -Install
 ```
 
-The published artifact is `dist/Swingdesk.apk`. The install command preserves existing application data, creates an ADB reverse tunnel for port `8787`, and launches the app. Start `start_dashboard.ps1` before using it. For operation without a USB connection, tap **Server** in the Android toolbar and enter the Windows private-LAN URL printed by the dashboard launcher.
+The published artifact is `dist/Swingdesk.apk`. The install command preserves existing application data, creates an ADB reverse tunnel for port `8787`, and launches the app. Start `start_dashboard.ps1` before using it. This build defaults to `http://10.0.0.112:8787/` for operation on the current trusted Wi-Fi without USB. If the Windows address changes, tap **Server** in the Android toolbar and enter the private-LAN URL printed by the dashboard launcher.
 
 ## Cron
 
