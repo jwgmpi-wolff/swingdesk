@@ -30,11 +30,21 @@ $bootstrapImage = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
 function Invoke-AzureCli {
     param([Parameter(Mandatory)][string[]]$Arguments)
 
-    $output = & az @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "Azure CLI command failed with exit code $LASTEXITCODE."
+    $previousPythonUtf8 = $env:PYTHONUTF8
+    $previousPythonIoEncoding = $env:PYTHONIOENCODING
+    try {
+        $env:PYTHONUTF8 = "1"
+        $env:PYTHONIOENCODING = "utf-8"
+        $output = & az @Arguments
+        if ($LASTEXITCODE -ne 0) {
+            throw "Azure CLI command failed with exit code $LASTEXITCODE."
+        }
+        return $output
     }
-    return $output
+    finally {
+        $env:PYTHONUTF8 = $previousPythonUtf8
+        $env:PYTHONIOENCODING = $previousPythonIoEncoding
+    }
 }
 
 function New-DeploymentParametersFile {
@@ -185,6 +195,7 @@ try {
         )
         $deployment = $deploymentJson | ConvertFrom-Json
         Write-Output "Swingdesk URL: $($deployment.properties.outputs.appUrl.value)"
+        Write-Output "Swingdesk fixed egress IP: $($deployment.properties.outputs.egressIpAddress.value)"
     }
 }
 finally {

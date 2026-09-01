@@ -29,6 +29,8 @@ public final class MainActivity extends Activity {
     private static final String PREFERENCES = "swingdesk";
     private static final String SERVER_URL = "server_url";
     private static final String LEGACY_LOOPBACK_URL = "http://127.0.0.1:8787/";
+    private static final String LEGACY_LAN_URL = "http://10.0.0.112:8787/";
+    private static final String LEGACY_AZURE_URL = "https://swingdesk-zlhnrjhf.orangecoast-0d9f66bc.eastus2.azurecontainerapps.io/";
     private WebView webView;
 
     @Override
@@ -108,7 +110,7 @@ public final class MainActivity extends Activity {
 
     private String serverUrl() {
         String saved = getSharedPreferences(PREFERENCES, MODE_PRIVATE).getString(SERVER_URL, BuildConfig.DEFAULT_SERVER_URL);
-        if (LEGACY_LOOPBACK_URL.equals(saved)) {
+        if (LEGACY_LOOPBACK_URL.equals(saved) || LEGACY_LAN_URL.equals(saved) || LEGACY_AZURE_URL.equals(saved)) {
             getSharedPreferences(PREFERENCES, MODE_PRIVATE).edit().putString(SERVER_URL, BuildConfig.DEFAULT_SERVER_URL).apply();
             return BuildConfig.DEFAULT_SERVER_URL;
         }
@@ -128,7 +130,7 @@ public final class MainActivity extends Activity {
 
         new AlertDialog.Builder(this)
             .setTitle("Dashboard server")
-            .setMessage("Enter the Windows dashboard URL on your trusted local network.")
+            .setMessage("Enter the Swingdesk server URL. Use HTTPS for remote access.")
             .setView(container)
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Connect", (dialog, which) -> saveServerUrl(input.getText().toString()))
@@ -174,7 +176,7 @@ public final class MainActivity extends Activity {
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
             if (request.isForMainFrame()) {
-                Toast.makeText(MainActivity.this, "Cannot reach Swingdesk. Start the Windows server or change Server.", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Cannot reach Swingdesk. Check your connection or change Server.", Toast.LENGTH_LONG).show();
             }
         }
 

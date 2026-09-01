@@ -10,9 +10,9 @@ android {
         applicationId "com.swingdesk.app"
         minSdk 26
         targetSdk 35
-        versionCode 3
-        versionName "1.1.1"
-        buildConfigField "String", "DEFAULT_SERVER_URL", '"http://10.0.0.112:8787/"'
+        versionCode 5
+        versionName "1.3.0"
+        buildConfigField "String", "DEFAULT_SERVER_URL", '"https://swingdesk-zlhnrjhf-v2.politehill-0823ec58.eastus2.azurecontainerapps.io/"'
     }
 
     buildFeatures {

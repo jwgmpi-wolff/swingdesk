@@ -43,10 +43,58 @@ param tags object = {
 var uniqueSuffix = take(uniqueString(subscription().id, resourceGroup().id, baseName), 8)
 var registryName = 'swing${uniqueSuffix}acr'
 var storageAccountName = take(toLower(replace('${baseName}${uniqueSuffix}data', '-', '')), 24)
-var environmentName = take('${baseName}-${uniqueSuffix}-env', 60)
-var containerAppName = take('${baseName}-${uniqueSuffix}', 32)
+var environmentName = take('${baseName}-${uniqueSuffix}-env-v2', 60)
+var containerAppName = take('${baseName}-${uniqueSuffix}-v2', 32)
 var identityName = take('${baseName}-${uniqueSuffix}-pull', 128)
 var fileShareName = 'swingdesk-data'
+var publicIpName = take('${baseName}-${uniqueSuffix}-egress-pip', 80)
+var natGatewayName = take('${baseName}-${uniqueSuffix}-nat', 80)
+var virtualNetworkName = take('${baseName}-${uniqueSuffix}-vnet', 64)
+var infrastructureSubnetName = 'container-apps-infrastructure'
+
+module publicIp 'br/public:avm/res/network/public-ip-address:0.13.0' = {
+  params: {
+    name: publicIpName
+    location: location
+    publicIPAddressVersion: 'IPv4'
+    publicIPAllocationMethod: 'Static'
+    skuName: 'Standard'
+    skuTier: 'Regional'
+    tags: tags
+  }
+}
+
+module natGateway 'br/public:avm/res/network/nat-gateway:2.1.1' = {
+  params: {
+    name: natGatewayName
+    location: location
+    availabilityZone: -1
+    publicIpResourceIds: [
+      publicIp.outputs.resourceId
+    ]
+    tags: tags
+  }
+}
+
+module virtualNetwork 'br/public:avm/res/network/virtual-network:0.10.2' = {
+  params: {
+    name: virtualNetworkName
+    location: location
+    addressPrefixes: [
+      '10.20.0.0/22'
+    ]
+    subnets: [
+      {
+        name: infrastructureSubnetName
+        addressPrefix: '10.20.0.0/23'
+        defaultOutboundAccess: false
+        delegation: 'Microsoft.App/environments'
+        natGatewayResourceId: natGateway.outputs.resourceId
+      }
+    ]
+    tags: tags
+  }
+}
 
 module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.6.0' = {
   params: {
@@ -64,6 +112,7 @@ module registry 'br/public:avm/res/container-registry/registry:0.13.0' = {
     acrSku: 'Basic'
     anonymousPullEnabled: false
     publicNetworkAccess: 'Enabled'
+    networkRuleSetDefaultAction: 'Allow'
     roleAssignments: [
       {
         principalId: identity.outputs.principalId
@@ -96,6 +145,10 @@ module storage 'br/public:avm/res/storage/storage-account:0.33.0' = {
       ]
     }
     minimumTlsVersion: 'TLS1_2'
+    networkAcls: {
+      bypass: 'AzureServices'
+      defaultAction: 'Allow'
+    }
     publicNetworkAccess: 'Enabled'
     requireInfrastructureEncryption: true
     skuName: 'Standard_LRS'
@@ -111,6 +164,7 @@ module environment 'br/public:avm/res/app/managed-environment:0.15.0' = {
     appLogsConfiguration: {
       destination: 'azure-monitor'
     }
+    infrastructureSubnetResourceId: virtualNetwork.outputs.subnetResourceIds[0]
     peerTrafficEncryption: true
     publicNetworkAccess: 'Enabled'
     storages: [
@@ -265,6 +319,7 @@ module app 'br/public:avm/res/app/container-app:0.23.0' = if (deployContainerApp
 
 output appName string = app.?outputs.?name ?? ''
 output appUrl string = deployContainerApp ? 'https://${app.?outputs.?fqdn}' : ''
+output egressIpAddress string = publicIp.outputs.ipAddress
 output registryName string = registry.outputs.name
 output registryLoginServer string = registry.outputs.loginServer
 output storageAccountName string = storage.outputs.name
