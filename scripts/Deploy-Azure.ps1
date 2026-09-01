@@ -6,7 +6,7 @@ param(
     [string]$ResourceGroup = "rg-swingdesk-prod",
     [string]$Location = "eastus2",
     [string]$BaseName = "swingdesk",
-    [string]$ImageTag = $(if ($env:GITHUB_SHA) { $env:GITHUB_SHA.Substring(0, [Math]::Min(12, $env:GITHUB_SHA.Length)) } else { "latest" }),
+    [string]$ImageTag = $(if ($env:GITHUB_SHA) { $env:GITHUB_SHA.Substring(0, [Math]::Min(12, $env:GITHUB_SHA.Length)) } else { "local-$([DateTime]::UtcNow.ToString('yyyyMMddHHmmss'))" }),
     [switch]$LiveTrading,
     [switch]$SkipBuild,
     [switch]$ValidateOnly,

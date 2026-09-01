@@ -353,12 +353,19 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     @require_login
     def overview() -> Any:
         settings = load_settings(Path(app.config["SETTINGS_PATH"]))
-        client = create_client()
-        accounts = all_accounts(client)
-        orders = recent_orders(client)
-        fills = recent_fills(client)
+        accounts = []
+        orders = []
+        fills = []
         strategies = []
         warnings = []
+        try:
+            client = create_client()
+            accounts = all_accounts(client)
+            orders = recent_orders(client)
+            fills = recent_fills(client)
+        except Exception as exc:
+            app.logger.warning("Coinbase account data unavailable: %s", exc)
+            warnings.append("Coinbase account data is unavailable; strategy data remains available")
         for strategy in settings.strategies:
             try:
                 strategies.append(strategy_snapshot(strategy, Path(app.config["STATE_PATH"])))
@@ -430,7 +437,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     @app.errorhandler(Exception)
     def unexpected_error(error: Exception) -> Any:
         app.logger.exception("Dashboard request failed", exc_info=error)
-        return jsonify({"error": "Request failed; check the Windows server log"}), 500
+        return jsonify({"error": "Request failed; check the server logs"}), 500
 
     return app
 

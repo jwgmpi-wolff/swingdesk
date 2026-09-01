@@ -115,3 +115,26 @@ def test_live_run_requires_explicit_confirmation(tmp_path: Path, monkeypatch) ->
 
     assert response.status_code == 409
     assert "confirmation" in response.get_json()["error"].lower()
+
+
+def test_overview_keeps_strategy_data_when_coinbase_is_unavailable(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("DASHBOARD_PASSWORD", "test-password")
+    settings_path = tmp_path / "settings.json"
+    dashboard.save_settings(settings_path, dashboard.BotSettings())
+    monkeypatch.setattr(dashboard, "create_client", lambda: (_ for _ in ()).throw(RuntimeError("unauthorized")))
+    monkeypatch.setattr(
+        dashboard,
+        "strategy_snapshot",
+        lambda strategy, state_path: {"ticker": strategy.ticker, "signal": "HOLD", "chart": []},
+    )
+    app = dashboard.create_app({"TESTING": True, "SETTINGS_PATH": settings_path})
+    client = app.test_client()
+    login(client)
+
+    response = client.get("/api/overview")
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["balances"] == []
+    assert payload["strategies"][0]["signal"] == "HOLD"
+    assert "Coinbase account data is unavailable" in payload["warnings"][0]
