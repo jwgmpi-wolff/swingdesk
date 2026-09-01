@@ -1,4 +1,4 @@
-const CACHE = "swingdesk-v4";
+const CACHE = "swingdesk-v5";
 const ASSETS = ["/", "/static/app.css", "/static/app.js", "/static/mark.svg", "/static/icon-192.png", "/static/icon-512.png"];
 
 self.addEventListener("install", (event) => {

@@ -30,6 +30,9 @@ def test_app_shell_and_red_c_icon_are_served(tmp_path: Path, monkeypatch) -> Non
     assert b"Swingdesk" in page.data
     assert b'id="password-toggle"' in page.data
     assert b'aria-label="Show password"' in page.data
+    assert b'id="strategy-summary-grid"' in page.data
+    assert b"renderStrategySummaries" in client.get("/static/app.js").data
+    assert b'swingdesk-v5' in client.get("/service-worker.js").data
     assert icon.status_code == 200
     assert b">C</text>" in icon.data
     assert b"#d52b2b" in icon.data

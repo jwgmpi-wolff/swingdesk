@@ -89,6 +89,7 @@ function render(data) {
   if (!available.includes(state.selectedTicker)) state.selectedTicker = available[0] || "";
   byId("strategy-select").innerHTML = data.strategies.map((strategy) => `<option value="${escapeHtml(strategy.ticker)}">${escapeHtml(strategy.ticker)}</option>`).join("");
   byId("strategy-select").value = state.selectedTicker;
+  renderStrategySummaries();
   renderSelectedStrategy();
   byId("updated-at").textContent = `Updated ${dateTime(data.as_of)}`;
   renderBalances(data.balances);
@@ -99,16 +100,24 @@ function render(data) {
   if (data.warnings?.length) notify(data.warnings.join(" "));
 }
 
+function renderStrategySummaries() {
+  byId("strategy-summary-grid").innerHTML = state.data.strategies.map((strategy) => `
+    <button class="strategy-summary${strategy.ticker === state.selectedTicker ? " selected" : ""}" type="button" data-ticker="${escapeHtml(strategy.ticker)}" aria-pressed="${strategy.ticker === state.selectedTicker}">
+      <span class="strategy-summary-heading"><strong>${escapeHtml(strategy.ticker)}</strong><small>${state.liveTrading ? "LIVE" : "DRY RUN"}</small></span>
+      <span class="strategy-summary-price">${money(strategy.latest_close)}</span>
+      <span class="strategy-summary-detail"><b>${escapeHtml(strategy.signal.replaceAll("_", " "))}</b><small>${strategy.position_active ? "Position active" : "No position"}</small></span>
+      <span class="strategy-summary-notional">${money(strategy.trade_usd_amount)} per entry</span>
+    </button>`).join("");
+}
+
 function renderSelectedStrategy() {
   const strategy = state.data?.strategies.find((item) => item.ticker === state.selectedTicker);
   if (!strategy) return;
-  byId("metric-ticker").textContent = strategy.ticker;
-  byId("metric-position").textContent = strategy.position_active ? "Local position active" : "No local position";
-  byId("metric-close").textContent = money(strategy.latest_close);
-  byId("metric-entry").textContent = strategy.entry_price ? `Entry ${money(strategy.entry_price)}` : "No entry recorded";
-  byId("metric-signal").textContent = strategy.signal.replaceAll("_", " ");
-  byId("metric-mode").textContent = state.liveTrading ? "LIVE" : "DRY RUN";
-  byId("metric-notional").textContent = `${money(strategy.trade_usd_amount)} per entry`;
+  byId("strategy-summary-grid").querySelectorAll("[data-ticker]").forEach((summary) => {
+    const selected = summary.dataset.ticker === state.selectedTicker;
+    summary.classList.toggle("selected", selected);
+    summary.setAttribute("aria-pressed", String(selected));
+  });
   byId("chart-subtitle").textContent = `${strategy.ticker} / 90 completed sessions`;
   drawChart(strategy.chart);
 }
@@ -246,6 +255,13 @@ byId("strategy-list").addEventListener("click", (event) => {
   button.closest(".strategy-row").remove();
 });
 byId("strategy-select").addEventListener("change", (event) => { state.selectedTicker = event.target.value; renderSelectedStrategy(); });
+byId("strategy-summary-grid").addEventListener("click", (event) => {
+  const summary = event.target.closest("[data-ticker]");
+  if (!summary) return;
+  state.selectedTicker = summary.dataset.ticker;
+  byId("strategy-select").value = state.selectedTicker;
+  renderSelectedStrategy();
+});
 byId("show-passwords").addEventListener("change", (event) => {
   byId("password-form").querySelectorAll('input[type="password"], input[type="text"]').forEach((input) => { input.type = event.target.checked ? "text" : "password"; });
 });

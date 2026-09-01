@@ -53,12 +53,7 @@
           <div><p class="eyebrow">ACCOUNT CONTROL</p><h1>Overview</h1></div>
           <div class="heading-actions"><span class="updated" id="updated-at">Not refreshed</span><button class="primary-button" id="run-button">Run strategy now</button></div>
         </div>
-        <div class="metric-grid">
-          <article class="metric"><span>Tracked asset</span><strong id="metric-ticker">--</strong><small id="metric-position">Position unknown</small></article>
-          <article class="metric"><span>Latest close</span><strong id="metric-close">--</strong><small id="metric-entry">No entry recorded</small></article>
-          <article class="metric"><span>Current signal</span><strong id="metric-signal">--</strong><small>20 / 50 SMA crossover</small></article>
-          <article class="metric accent"><span>Execution mode</span><strong id="metric-mode">--</strong><small id="metric-notional">-- per entry</small></article>
-        </div>
+        <div class="strategy-summary-grid" id="strategy-summary-grid"></div>
         <div class="overview-grid">
           <section class="panel chart-panel">
             <div class="panel-heading"><div><h2>Price movement</h2><p id="chart-subtitle">90 completed sessions</p></div><div class="chart-tools"><label for="strategy-select">Stock</label><select id="strategy-select" aria-label="Select tracked stock"></select><div class="legend"><span class="close">Close</span><span class="fast">SMA 20</span><span class="slow">SMA 50</span></div></div></div>
