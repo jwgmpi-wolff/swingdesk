@@ -2,6 +2,18 @@
 
 A once-daily Python bot that downloads free Yahoo Finance data, calculates 20/50-day SMA crossovers, applies a 10% close-based stop-loss, and submits eligible U.S. equity orders through Coinbase Advanced Trade.
 
+<!-- project-downloads:start -->
+## APK and installer downloads
+
+| Package | Download | Source |
+| --- | --- | --- |
+| Android APK | [Swingdesk.apk](https://github.com/jwgmpi-wolff/swingdesk/releases/download/v1.1.1/Swingdesk.apk) | v1.1.1 |
+
+Android may require approval to install apps from this download source. Debug APKs are labeled above. Windows executables that are not setup packages may require accompanying project files; follow the project-specific instructions below.
+
+- [Download the complete source ZIP](https://github.com/jwgmpi-wolff/swingdesk/archive/refs/heads/main.zip).
+<!-- project-downloads:end -->
+
 ## Important limitations
 
 - This is software, not investment advice. Test with `DRY_RUN=true` before risking funds.
@@ -270,3 +282,9 @@ Provide `COINBASE_KEY_FILE` and `DRY_RUN=false` through the cron host's protecte
 ```
 
 The process returns `0` for a successful run or no-op and `1` for invalid state, market-data failure, authentication failure, or rejected API calls.
+
+## Copyright
+
+Copyright (c) 2026 Jerry Wolff. See [COPYRIGHT](COPYRIGHT) for the scope of this
+notice. Existing licenses and third-party attribution remain unchanged; this
+notice does not grant additional permissions.
