@@ -5,13 +5,32 @@ A once-daily Python bot that downloads free Yahoo Finance data, calculates 20/50
 <!-- project-downloads:start -->
 ## APK and installer downloads
 
-| Package | Download | Source |
+Every available project package is indexed below, including older versions. Prefer the newest stable version for your platform and architecture. Debug APKs and prereleases are labeled; archives are not necessarily standalone installers.
+
+### Release downloads: all published versions
+
+| Version / source | Package | Download |
 | --- | --- | --- |
-| Android APK | [Swingdesk.apk](https://github.com/jwgmpi-wolff/swingdesk/releases/download/v1.1.1/Swingdesk.apk) | v1.1.1 |
+| v1.1.1 | Android APK | [Swingdesk.apk](https://github.com/jwgmpi-wolff/swingdesk/releases/download/v1.1.1/Swingdesk.apk) |
+| v1.1.0 | Android APK | [Swingdesk.apk](https://github.com/jwgmpi-wolff/swingdesk/releases/download/v1.1.0/Swingdesk.apk) |
 
-Android may require approval to install apps from this download source. Debug APKs are labeled above. Windows executables that are not setup packages may require accompanying project files; follow the project-specific instructions below.
+### Repository-hosted packages: all available versions
 
-- [Download the complete source ZIP](https://github.com/jwgmpi-wolff/swingdesk/archive/refs/heads/main.zip).
+| Version / source | Package | Download |
+| --- | --- | --- |
+| repository | Android APK | [dist/Swingdesk.apk](https://github.com/jwgmpi-wolff/swingdesk/raw/refs/heads/main/dist/Swingdesk.apk) |
+
+Git LFS links download the package itself, not a pointer file. Executables without a setup wrapper may require accompanying project files.
+
+### Setup scripts and source
+
+- [Setup script: install_dashboard_service.ps1](./install_dashboard_service.ps1)
+- [Setup script: install_dashboard_service.sh](./install_dashboard_service.sh)
+
+- [Download the complete source ZIP](https://github.com/jwgmpi-wolff/swingdesk/archive/refs/heads/main.zip). Extract the complete checkout before running setup scripts unless the project instructions explicitly support standalone installation.
+- [Browse all releases and their assets](https://github.com/jwgmpi-wolff/swingdesk/releases).
+
+Android may require approval to install apps from the download source. Follow the project-specific installation, signing, checksum, and prerequisite instructions elsewhere in this README.
 <!-- project-downloads:end -->
 
 ## Important limitations
